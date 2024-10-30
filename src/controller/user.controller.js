@@ -1,5 +1,6 @@
 const User = require('../models/user.models.js')
 const bcrypt=require('bcrypt')
+const generateAccessToken=require("../middleware/accesstoken.middleware.js")
 
 const registerUser=async(req,res)=>{
     const {fullname,email,password}=req.body;
@@ -21,7 +22,6 @@ const registerUser=async(req,res)=>{
     res.status(200).json({s:"User registered successfully"})
 }
 
-
 const loginUser=async(req,res)=>{
     const {email,password}=req.body
     if(!email || !password){
@@ -35,6 +35,8 @@ const loginUser=async(req,res)=>{
     if(!passwordIsMatch){
         return res.status(400).json({e:"Incorrect Password"})
     }
+    const accesstoken=generateAccessToken(user);
+    res.cookie('accesstoken',accesstoken,{httpOnly:true});
     res.status(200).json({m:`Successfully logged in as ${email}`});
 }
 
