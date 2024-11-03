@@ -5,14 +5,18 @@ const generateAccessToken = require("../middleware/accesstoken.middleware.js")
 const genOTP = require("../middleware/otp.register.middleware.js")
 
 const registerUser = async (req, res) => {
-    const { fullname, email, password } = req.body;
-    if (!fullname || !email || !password) {
+    const { fullname,username ,email, password } = req.body;
+    if (!fullname || !username || !email || !password) {
         return res.status(400).json({ e: "All Fields are required" })
     }
     try {
-        const user = await User.findOne({ email })
-        if (user) {
-            return res.status(409).json({ e: "User Already exists" })
+        const userEmail = await User.findOne({ email })
+        const userUsername=await User.findOne({ username })
+        if (userEmail) {
+            return res.status(409).json({ e: "This email is already registered" })
+        }
+        if (userUsername) {
+            return res.status(409).json({ e: "This Username is already taken" })
         }
         const otp = await genOTP(email);
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,7 +33,7 @@ const registerUser = async (req, res) => {
 }
 const verifyUserRegistration = async (req, res) => {
     const { otpInput } = req.body;
-    // try {
+    try {
         const regToken = req.cookies._regToken;
         const decodedToken = jwt.verify(regToken, process.env.JWT_SECRET);
         const { fullname, email, password, otp } = decodedToken;
@@ -46,9 +50,9 @@ const verifyUserRegistration = async (req, res) => {
         }
         res.clearCookie('_regToken');
         res.status(200).json({ m: `${fullname} registered successfully` })
-    // } catch (err) {
-    //     res.status(500).json({ e: "Unknown error occured" })
-    // }
+    } catch (err) {
+        res.status(500).json({ e: "Unknown error occured" })
+    }
 }
 
 const loginUser = async (req, res) => {

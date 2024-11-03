@@ -1,5 +1,4 @@
 const mongoose=require('mongoose')
-const bcrypt=require('bcrypt')
 
 const userSchema = mongoose.Schema({
     email : {
@@ -18,7 +17,9 @@ const userSchema = mongoose.Schema({
         uppercase:true
     },
     username:{
-        type:String
+        type:String,
+        required:true,
+        unique:true
     },
     phone:{
         type:Number

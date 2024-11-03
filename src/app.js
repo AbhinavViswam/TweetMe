@@ -1,8 +1,9 @@
 const express=require("express")
 const dotenv=require("dotenv")
 const cookieParser=require("cookie-parser")
-const connectDB = require("./db/db.config")
-const userRouter=require("./routes/user.route")
+const connectDB = require("./db/db.config.js")
+const userRouter=require("./routes/user.route.js")
+const tweetRouter=require("./routes/tweet.route.js")
 
 const app=express()
 
@@ -15,6 +16,7 @@ dotenv.config()
 connectDB()
 
 app.use("/user",userRouter);
+app.use("/tweet",tweetRouter);
 
 app.listen(3001 || process.env.PORT,()=>{
     console.log("Server running");
