@@ -24,8 +24,32 @@ const sendTweet=async(req,res)=>{
         username:t.username.username,
         tweets:t.tweet
     }))
-    console.log(tweets);
     res.status(200).json({m:tweetsResult})
 }
 
-module.exports=sendTweet;
+const showTweet=async(req,res)=>{
+    const tweets = await Tweet.aggregate([
+        { 
+            $lookup: {
+                from: 'users',
+                localField: 'username', 
+                foreignField: '_id',
+                as: 'userDetails' 
+            }
+        },
+        { $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true } },
+        { $sample: { size: 10 } } 
+    ]);
+    
+    if (tweets.length === 0) {
+        return res.status(200).json({ m: "No tweets to show now, come back later" });
+    }
+    const tweetsResult=tweets.map(t=>({
+        username:t.userDetails.username,
+        tweets:t.tweet,
+        PostedOn:t.createdAt
+    }))
+    res.status(200).json({tweetsResult})
+}
+
+module.exports={sendTweet,showTweet};

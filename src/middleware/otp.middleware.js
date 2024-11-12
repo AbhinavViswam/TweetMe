@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-async function genOTP(email) {
+async function genOTP(email,message) {
 
     try{
 
@@ -17,7 +17,7 @@ async function genOTP(email) {
             from: process.env.GMAIL_ID,
             to: email,
             subject: `Your OTP:${otp}`,
-            text: `Your OTP for registration is: ${otp}.`
+            text: `${message} ${otp}.`
         };
 
         return transporter.sendMail(mailOptions);

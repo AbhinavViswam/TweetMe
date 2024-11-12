@@ -1,5 +1,6 @@
 const express=require("express")
-const {registerUser,verifyUserRegistration,loginUser} = require("../controller/user.controller")
+const {registerUser,verifyUserRegistration,loginUser,forgotPassword,verifyPasswordResetOTP,setNewPassword} = require("../controller/user.controller")
+const {allowVerifyOTP,allowSetNewPassword} = require("../middleware/resetpass.middleware.js")
 const router=express.Router()
 
 router.route("/register")
@@ -15,6 +16,21 @@ router.route("/verify-register")
 router.route("/login")
 .post((req,res)=>{
     loginUser(req,res)
+})
+
+router.route("/forgotpassword")
+.post((req,res)=>{
+    forgotPassword(req,res)
+})
+
+router.route("/verifypasswordotp")
+.post(allowVerifyOTP,(req,res)=>{
+    verifyPasswordResetOTP(req,res)
+})
+
+router.route("/setnewpassword")
+.post(allowSetNewPassword,(req,res)=>{
+    setNewPassword(req,res)
 })
 
 module.exports=router
