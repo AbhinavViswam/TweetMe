@@ -6,7 +6,8 @@ try{
     {
         _id:user._id,
         fullname:user.fullname,
-        email:user.email
+        email:user.email,
+        role:user.role
     },
 process.env.ACCESS_TOKEN_SECRET,
 { expiresIn:process.env.ACCESS_TOKEN_EXPIRY }

@@ -1,6 +1,11 @@
 const mongoose=require('mongoose')
+const {v4:uuidv4}=require("uuid")
 
 const userSchema = mongoose.Schema({
+    _id:{
+        type:String,
+        default:uuidv4
+    },
     email : {
         type:String,
         required:true,
@@ -29,7 +34,16 @@ const userSchema = mongoose.Schema({
     },
     dob:{
         type:String
-    }
+    },
+    role:{
+        type:String,
+        enum:['user','admin'],
+        default:"user"
+    }, 
+    isBlocked:{
+        type:Boolean,
+        default:false
+    } 
 },{
     timestamps:true
 })

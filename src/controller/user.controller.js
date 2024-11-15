@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt')
 const jwt = require("jsonwebtoken")
 const generateAccessToken = require("../middleware/accesstoken.middleware.js")
 const genOTP = require("../middleware/otp.middleware.js")
-const { createSearchIndex } = require('../models/tweet.models.js')
 
 const registerUser = async (req, res) => {
     const { fullname,username ,email, password } = req.body;
@@ -27,7 +26,7 @@ const registerUser = async (req, res) => {
             { expiresIn: '10m' }
         );
 
-        res.cookie('_regToken', regToken, { httpOnly: true, maxAge: 600000 }).status(200).json({ m: "An otp has been send to your email to confirm registration" });
+        res.cookie('_regToken', regToken, { httpOnly: true, maxAge: 600000, sameSite:'Strict' }).status(200).json({ m: "An otp has been send to your email to confirm registration" });
     } catch (err) {
         res.status(500).json({ e: "Unknown error occured" })
     }
@@ -72,8 +71,13 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ e: "Incorrect Password" })
         }
         const accesstoken = generateAccessToken(user);
-        res.cookie('accesstoken', accesstoken, { httpOnly: true });
-        res.status(200).json({ m: `Successfully logged in as ${email}` });
+        res.cookie('accesstoken', accesstoken, { httpOnly: true,sameSite:'Strict' });
+        if(user.role=='admin'){
+            res.status(200).json({ m: `,Hello ADMIN, Successfully logged in as ${email}` });
+        }
+        else{
+            res.status(200).json({ m: `Successfully logged in as ${email}` });
+        }
     } catch (err) {
         res.status(500).json({ e: "Unknown error occured" })
     }
@@ -94,7 +98,7 @@ const forgotPassword=async(req,res)=>{
             return res.status(500).json({e:"Some internal error occured"})
         }
         const otpToken=jwt.sign({otp,email},process.env.JWT_SECRET,{expiresIn:"10m"})
-        res.cookie('_otp',otpToken,{httpOnly:true,maxAge:15 * 60 * 1000}).status(200).json({m:"an otp to reset password is sent to your email"});
+        res.cookie('_otp',otpToken,{httpOnly:true,maxAge:15 * 60 * 1000,sameSite:'Strict'}).status(200).json({m:"an otp to reset password is sent to your email"});
     } catch (error) {
         return res.status(500).json({e:"internal error occured"})
     }
@@ -114,7 +118,7 @@ const verifyPasswordResetOTP=async(req,res)=>{
      if(otpInput!==otp.otp){
          return res.status(400).json({e:"Invalid OTP"})
      }
-     res.status(200).cookie('_done',1,{httpOnly:true,maxAge:15 * 60 * 1000}).json({m:"you can reset your password"})
+     res.status(200).cookie('_done',1,{httpOnly:true,maxAge:15 * 60 * 1000,sameSite:'Strict'}).json({m:"you can reset your password"})
    } catch (error) {
     return res.status(500).json({e:"internal error occured"})
    }
