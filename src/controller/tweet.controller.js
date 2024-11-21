@@ -1,5 +1,6 @@
 const Tweet=require('../models/tweet.models.js')
 const User=require('../models/user.models.js')
+const mongoose=require("mongoose")
 
 const sendTweet=async(req,res)=>{
     const {userId}=req.params;
@@ -15,24 +16,56 @@ const sendTweet=async(req,res)=>{
         return res.status(404).json({e:"no user found with this userId"})
     }
     const saveData=new Tweet({
-        username:userId,
+        userid:userId,
         tweet
     })
+
     await saveData.save()
-    const tweets=await Tweet.find({username:userId}).populate('username')
-    const tweetsResult=tweets.map(t=>({
-        username:t.username.username,
-        tweets:t.tweet
-    }))
-    res.status(200).json({m:tweetsResult})
+    // const tweets=await Tweet.find({userid:userId}).populate('userid')
+    // const tweets1=await Tweet.aggregate([
+    //     {$match:{userid:userId}},
+    //     {$lookup:{from:"users",localField:"userid",foreignField:"_id", as:"UserDetails"}},
+    //     {$unwind:"$UserDetails"},
+    //     {$project:{_id:0,username:"$UserDetails.username",tweets:"$tweets"}}
+    //     ////samething above but using aggregation
+    // ])
+    const tweets = await Tweet.aggregate([
+        {
+            $match: { userid: new mongoose.Types.ObjectId( userId) } // Match tweets by userId
+        },
+        {
+            $lookup: {
+                from: "users", // Collection to join with
+                localField: "userid", // Field in Tweet to match
+                foreignField: "_id", // Field in User to match
+                as: "userDetails" // Output array name
+            }
+        },
+        {
+            $unwind: "$userDetails" // Flatten the userDetails array
+        },
+        {
+            $project: {
+                _id: 0, // Exclude the _id field
+                username: "$userDetails.username", // Get username from userDetails
+                tweet: "$tweet" // Include the tweet content
+            }
+        }
+    ]);
+    console.log(tweets);
+    // const tweetsResult=tweets.map(t=>({
+    //     username:t.userid.username,
+    //     tweets:t.tweet
+    // }))
+    res.status(200).json({m:tweets})
 }
 
-const showTweet=async(req,res)=>{
+const showTweet=async(_,res)=>{
     const tweets = await Tweet.aggregate([
         { 
             $lookup: {
                 from: 'users',
-                localField: 'username', 
+                localField: 'userid', 
                 foreignField: '_id',
                 as: 'userDetails' 
             }

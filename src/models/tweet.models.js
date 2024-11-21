@@ -1,14 +1,8 @@
 const mongoose=require('mongoose');
-const {v4:uuidv4, stringify}=require("uuid")
-const User=require('./user.models.js')
 
 const tweetSchema=new mongoose.Schema({
-    _id:{
-        type:String,
-        default:uuidv4
-    },
-    username:{
-        type:String,
+    userid:{
+        type:mongoose.Schema.Types.ObjectId,
         ref:'User',
         required:true
     },

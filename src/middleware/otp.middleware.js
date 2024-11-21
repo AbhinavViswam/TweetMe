@@ -26,7 +26,6 @@ async function genOTP(email,message) {
     const generateOTP = () => {
         return Math.floor(100000 + Math.random() * 900000);
     };
-
     const otpGenerated = generateOTP()
     await sendOTPEmail(email, otpGenerated)
     return otpGenerated

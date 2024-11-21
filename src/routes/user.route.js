@@ -1,5 +1,5 @@
 const express=require("express")
-const {registerUser,verifyUserRegistration,loginUser,forgotPassword,verifyPasswordResetOTP,setNewPassword} = require("../controller/user.controller")
+const {registerUser,verifyUserRegistration,loginUser,forgotPassword,verifyPasswordResetOTP,setNewPassword,changeCurrentPassword} = require("../controller/user.controller")
 const {allowVerifyOTP,allowSetNewPassword} = require("../middleware/resetpass.middleware.js")
 const router=express.Router()
 
@@ -32,5 +32,6 @@ router.route("/setnewpassword")
 .post(allowSetNewPassword,(req,res)=>{
     setNewPassword(req,res)
 })
+
 
 module.exports=router

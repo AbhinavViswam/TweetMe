@@ -71,7 +71,7 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ e: "Incorrect Password" })
         }
         const accesstoken = generateAccessToken(user);
-        res.cookie('accesstoken', accesstoken, { httpOnly: true,sameSite:'Strict' });
+        res.cookie('accessToken', accesstoken, { httpOnly: true,sameSite:'Strict' });
         if(user.role=='admin'){
             res.status(200).json({ m: `,Hello ADMIN, Successfully logged in as ${email}` });
         }
@@ -150,4 +150,69 @@ const setNewPassword=async(req,res)=>{
     }
 }
 
-module.exports = { registerUser, verifyUserRegistration, loginUser,forgotPassword ,verifyPasswordResetOTP,setNewPassword};
+
+logoutUser=async(_,res)=>{
+    res.clearCookie('accessToken');
+    res.status(200).json({m:"User logged out"})
+}
+
+const changeCurrentPassword=async(req,res)=>{
+    const userid=req.user._id
+    const {currentPassword,newPassword}=req.body;
+    if(!(currentPassword || newPassword)){
+        return res.status(400).json({e:"All fields are required"})
+    }
+    const user=await User.findById(userid);
+    const isPasswordMatch=await bcrypt.compare(currentPassword,user.password)
+    if(!isPasswordMatch){
+        return res.status(401).json({e:"Current password doesnot match"})
+    }
+    const hashedPassword=await bcrypt.hash(newPassword,10);
+    user.password=hashedPassword
+    await user.save()
+    return res.status(200).json({m:"password changed successfully"})
+}
+
+const getCurrentUser=async(req,res)=>{
+    return res.status(200).json({m:req.user})
+}
+
+const updateUserDetails=async(req,res)=>{
+    const {fullname,bio,dob}=req.body
+    if(!(fullname || bio || dob)){
+        return res.status(400).json({e:"All fields are required!"})
+    }
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                fullname,
+                bio,
+                dob
+            }
+        },
+        {new:true}
+    ).select("-password")
+    return res.status(200).json({m:"User details updated",o:user})
+}
+
+const updateUsername=async(req,res)=>{
+    const {username}=req.body
+    if(!username){
+        res.status(400).json({e:"All fields are required"})
+    }
+    const usernameExists=await User.findOne({username})
+    if(usernameExists){
+        return res.status(400).json("Username already taken")
+    }
+    const user=await User.findByIdAndUpdate(req.user?._id,
+        {
+            $set:{
+                username
+            }
+        },{new:true}
+    ).select("-password")
+    return res.status(200).json({m:"Username Updated",o:user})
+}
+
+module.exports = { registerUser, verifyUserRegistration, loginUser,forgotPassword ,verifyPasswordResetOTP,setNewPassword,changeCurrentPassword,getCurrentUser,updateUserDetails};
