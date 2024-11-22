@@ -21,68 +21,60 @@ const sendTweet=async(req,res)=>{
     })
 
     await saveData.save()
-    // const tweets=await Tweet.find({userid:userId}).populate('userid')
-    // const tweets1=await Tweet.aggregate([
-    //     {$match:{userid:userId}},
-    //     {$lookup:{from:"users",localField:"userid",foreignField:"_id", as:"UserDetails"}},
-    //     {$unwind:"$UserDetails"},
-    //     {$project:{_id:0,username:"$UserDetails.username",tweets:"$tweets"}}
-    //     ////samething above but using aggregation
-    // ])
+   
     const tweets = await Tweet.aggregate([
         {
-            $match: { userid: new mongoose.Types.ObjectId( userId) } // Match tweets by userId
+            $match: { userid: new mongoose.Types.ObjectId( userId) }
         },
         {
             $lookup: {
-                from: "users", // Collection to join with
-                localField: "userid", // Field in Tweet to match
-                foreignField: "_id", // Field in User to match
-                as: "userDetails" // Output array name
+                from: "users", 
+                localField: "userid", 
+                foreignField: "_id",
+                as: "userDetails"
             }
         },
         {
-            $unwind: "$userDetails" // Flatten the userDetails array
+            $unwind: "$userDetails" 
         },
         {
             $project: {
-                _id: 0, // Exclude the _id field
-                username: "$userDetails.username", // Get username from userDetails
-                tweet: "$tweet" // Include the tweet content
+                _id: 0,
+                username: "$userDetails.username", 
+                tweet: "$tweet" 
             }
         }
     ]);
-    console.log(tweets);
-    // const tweetsResult=tweets.map(t=>({
-    //     username:t.userid.username,
-    //     tweets:t.tweet
-    // }))
     res.status(200).json({m:tweets})
 }
 
 const showTweet=async(_,res)=>{
-    const tweets = await Tweet.aggregate([
-        { 
-            $lookup: {
-                from: 'users',
-                localField: 'userid', 
-                foreignField: '_id',
-                as: 'userDetails' 
-            }
-        },
-        { $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true } },
-        { $sample: { size: 10 } } 
-    ]);
-    
-    if (tweets.length === 0) {
-        return res.status(200).json({ m: "No tweets to show now, come back later" });
-    }
-    const tweetsResult=tweets.map(t=>({
-        username:t.userDetails.username,
-        tweets:t.tweet,
-        PostedOn:t.createdAt
-    }))
-    res.status(200).json({tweetsResult})
+   try {
+     const tweets = await Tweet.aggregate([
+         { 
+             $lookup: {
+                 from: 'users',
+                 localField: 'userid', 
+                 foreignField: '_id',
+                 as: 'userDetails' 
+             }
+         },
+         { $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true } },
+         { $sample: { size: 10 } } 
+     ]);
+     
+     if (tweets.length === 0) {
+         return res.status(200).json({ m: "No tweets to show now, come back later" });
+     }
+     const tweetsResult=tweets.map(t=>({
+         username:t.userDetails.username,
+         tweets:t.tweet,
+         PostedOn:t.createdAt
+     }))
+     res.status(200).json({tweetsResult})
+   } catch (error) {
+    res.status(500).json({e:"Some internal error occured"})
+   }
 }
 
 module.exports={sendTweet,showTweet};

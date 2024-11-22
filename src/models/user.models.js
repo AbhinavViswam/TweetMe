@@ -19,7 +19,8 @@ const userSchema = mongoose.Schema({
     username:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
+        lowercase:true
     },
     phone:{
         type:Number,
@@ -41,7 +42,11 @@ const userSchema = mongoose.Schema({
     isBlocked:{
         type:Boolean,
         default:false
-    } 
+    } ,
+    profilePicture:{
+        type:String,
+        default:"mypic.jpg"
+    }
 },{
     timestamps:true
 })

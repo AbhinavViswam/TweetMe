@@ -151,7 +151,7 @@ const setNewPassword=async(req,res)=>{
 }
 
 
-logoutUser=async(_,res)=>{
+const logoutUser=async(_,res)=>{
     res.clearCookie('accessToken');
     res.status(200).json({m:"User logged out"})
 }
@@ -215,4 +215,33 @@ const updateUsername=async(req,res)=>{
     return res.status(200).json({m:"Username Updated",o:user})
 }
 
-module.exports = { registerUser, verifyUserRegistration, loginUser,forgotPassword ,verifyPasswordResetOTP,setNewPassword,changeCurrentPassword,getCurrentUser,updateUserDetails};
+const showUser=async(req,res)=>{
+    const {username}=req.params;
+    const user=await User.aggregate([
+        {
+            $match:{
+                username:username?.toLowerCase()
+            }
+        },
+        {
+            $lookup:{
+                from:"tweets",
+                localField:"_id",
+                foreignField:"userid",
+                as:"tweetsdetails"
+            }
+        },
+        
+        {
+            $project:{
+                _id:0,
+                username:"$username",
+                fullname:"$fullname",
+                tweet:"$tweetsdetails.tweet",
+            }
+        }
+    ])
+    res.json({m:user})
+}
+
+module.exports = { registerUser, verifyUserRegistration, loginUser,forgotPassword ,verifyPasswordResetOTP,setNewPassword,logoutUser,changeCurrentPassword,getCurrentUser,updateUserDetails,updateUsername,showUser};
