@@ -1,6 +1,7 @@
 const User=require("../models/user.models.js")
+const jwt=require("jsonwebtoken")
 
-const verifyJwt=async(req,res)=>{
+const verifyJwt=async(req,res,next)=>{
     try {
         const token=req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","");
         if(!token){
@@ -14,7 +15,7 @@ const verifyJwt=async(req,res)=>{
         req.user=user
         next();
     } catch (error) {
-        return res.status(500).json({e:"Internal Error"})  
+        return res.status(500).json({e:"Error with token"})  
     }
 }
 

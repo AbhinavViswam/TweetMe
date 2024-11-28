@@ -1,41 +1,22 @@
 const express=require("express")
-const { registerUser, verifyUserRegistration, loginUser,forgotPassword ,verifyPasswordResetOTP,setNewPassword,logoutUser,changeCurrentPassword,getCurrentUser,updateUserDetails,updateUsername,showUser} = require("../controller/user.controller")
-const {allowVerifyOTP,allowSetNewPassword} = require("../middleware/resetpass.middleware.js")
+const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow} = require("../controller/user.controller")
+const verifyJwt=require("../middleware/verifyToken.middleware.js")
 const router=express.Router()
 
-router.route("/register")
-.post((req,res)=>{
-    registerUser(req,res)
-})
+router.route("/register").post(registerUser)
 
-router.route("/verify-register")
-.post((req,res)=>{
-    verifyUserRegistration(req,res)
-})
+router.route("/login").post(loginUser);
 
-router.route("/login")
-.post((req,res)=>{
-    loginUser(req,res)
-})
+router.route("/logout").post(verifyJwt,logoutUser)
 
-router.route("/forgotpassword")
-.post((req,res)=>{
-    forgotPassword(req,res)
-})
+router.route("/:username").get(showUser)
 
-router.route("/verifypasswordotp")
-.post(allowVerifyOTP,(req,res)=>{
-    verifyPasswordResetOTP(req,res)
-})
+router.route("/change-username").patch(verifyJwt,updateUsername)
 
-router.route("/setnewpassword")
-.post(allowSetNewPassword,(req,res)=>{
-    setNewPassword(req,res)
-})
+router.route("/updatedetails").patch(verifyJwt,updateUserDetails);
 
-router.route("/:username")
-.get((req,res)=>{
-    showUser(req,res)
-})
+router.route("/change-password").post(verifyJwt,changeCurrentPassword)
+
+router.route("/follow").post(verifyJwt,follow)
 
 module.exports=router
