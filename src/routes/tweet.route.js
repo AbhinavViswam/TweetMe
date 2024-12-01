@@ -1,15 +1,14 @@
 const express=require("express")
-const {sendTweet,showTweet} = require("../controller/tweet.controller.js")
+const verifyJwt=require("../middleware/verifyToken.middleware.js")
+const {sendTweet,showTweet,like,unlike} = require("../controller/tweet.controller.js")
 const router=express.Router()
 
-router.route("/")
-.get((req,res)=>{
-    showTweet(req,res)
-})
+router.route("/").get(verifyJwt,showTweet)
+ 
+router.route("/posttweet").post(verifyJwt,sendTweet)
+ 
+router.route("/like").post(verifyJwt,like)
 
-router.route("/:userId")
-.post((req,res)=>{
-    sendTweet(req,res);
-})
+router.route("/unlike").post(verifyJwt,unlike)
 
 module.exports=router;

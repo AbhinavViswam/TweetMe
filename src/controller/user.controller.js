@@ -215,15 +215,19 @@ const showUser=async(req,res)=>{
 const follow=async(req,res)=>{
     const {followingId}=req.body
     const followerId=req.user?._id
-    if(!(followerId || followingId)){
-        return res.status(400).json({e:"FollowerId and FollowingId are required fields"})
+    try {
+        if(!(followerId || followingId)){
+            return res.status(400).json({e:"FollowerId and FollowingId are required fields"})
+        }
+        await Follow.create({
+            followerId,
+            followingId
+        })
+        const following_user=await User.findById(followingId)
+        res.status(200).json({m:`You are now following ${following_user.username}`})
+    } catch (error) {
+        return res.status(500).json({e:"Internal error occured"})
     }
-    await Follow.create({
-        followerId,
-        followingId
-    })
-    const following_user=await User.findById(followingId)
-    res.status(200).json({m:`You are now following ${following_user.username}`})
 }
 
 module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow };
