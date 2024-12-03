@@ -1,6 +1,7 @@
 const Tweet=require('../models/tweet.models.js')
 const User=require('../models/user.models.js')
 const Like=require("../models/like.models.js")
+const Comment=require("../models/comments.models.js")
 const mongoose=require("mongoose")
 
 const sendTweet=async(req,res)=>{
@@ -135,4 +136,62 @@ const unlike=async(req,res)=>{
 }
 }
 
-module.exports={sendTweet,showTweet,like,unlike};
+const addComment=async(req,res)=>{
+    const userId=req.user?._id;
+    const {tweetId,newComment}=req.body
+    if(!newComment || !tweetId){
+        return res.status(400).json({e:"tweetid or comment Field is empty"})
+    }
+    await Comment.create({
+        userid:userId,
+        tweetid:tweetId,
+        comment:newComment
+    })
+    res.status(200).json({m:"comment added",o:newComment})
+}
+
+const getComments=async(req,res)=>{
+    const {tweetId}=req.params
+    const comments=await Comment.aggregate([
+        {
+            $match:{tweetid:new mongoose.Types.ObjectId(tweetId)}
+        },
+        {
+           $lookup:{
+            from:"users",
+            localField:"userid",
+            foreignField:"_id",
+            as:"userDetails"
+           } 
+        },
+        {$unwind:"$userDetails"},
+        {
+            $project:{
+                _id:0,
+                username:"$userDetails.username",
+                comment:1,
+                createdAt:1
+            }
+        }
+    ]);
+    res.status(200).json({comments})
+}
+
+const deleteComment=async(req,res)=>{
+    const {commentid}=req.params;
+    const userid=req.user._id;
+    if(!commentid){
+        return res.status(400).json({e:"comment id not found"})
+    }
+    const comment=await Comment.findById(commentid);
+    if(!comment){
+        return res.status(404).json({e:"That comment doesnot exists"})
+    }
+    if(comment.userid.toString()!==userid.toString()){
+        return res.status(401).json({e:"You are not authorized to delete this comment"})
+    }
+    await Comment.deleteOne({_id:commentid});
+    res.status(200).json({m:"Comment Deleted"})
+}
+
+module.exports={sendTweet,showTweet,like,unlike,addComment,getComments,deleteComment};
