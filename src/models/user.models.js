@@ -46,6 +46,12 @@ const userSchema = mongoose.Schema({
     profilePicture:{
         type:String,
         default:"mypic.jpg"
+    },
+    resetToken:{
+        type:String
+    },
+    resetTokenExpiry:{
+        type:Date
     }
 },{
     timestamps:true

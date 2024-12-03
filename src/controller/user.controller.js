@@ -1,6 +1,6 @@
 const User = require('../models/user.models.js')
 const bcrypt = require('bcrypt')
-const jwt = require("jsonwebtoken")
+const crypto=require("crypto")
 const generateAccessToken = require("../middleware/accesstoken.middleware.js")
 const Follow=require("../models/follow.models.js")
 
@@ -77,6 +77,57 @@ const logoutUser=async(_,res)=>{
      res.status(200).json({m:"User logged out"})
    } catch (error) {
     res.status(500).json({e:"Some internal error occured"})
+   }
+}
+
+const resetPasswordLink=require("../middleware/nodemailer.middleware.js")
+
+const forgotPassword=async(req,res)=>{
+    const {email}=req.body
+    if(!email){
+        return res.status(400).json({e:"Email field is empty"})
+    }
+    try {
+        const user=await User.findOne({email})
+        if(!user){
+            return res.status(404).json({e:"No user found"})
+        }
+        const resetToken=crypto.randomBytes(32).toString("hex")
+        user.resetToken=resetToken
+        user.resetTokenExpiry = Date.now() + 3600000;
+        await user.save()
+        const resetLink=`${process.env.RESET_LINK}/reset-password/${resetToken}`;
+        await resetPasswordLink(email,resetLink)
+        return res.status(200).json({m:"Reset password link sent to your email"})
+    } catch (error) {
+        return res.status(500).json({e:"Internal Error"})
+    }
+}
+
+const resetPassword=async(req,res)=>{
+    const {token}=req.params
+    const {newPassword}=req.body
+    if(!newPassword){
+        return res.status(400).json({e:"No password entered"})
+    }
+   try {
+     const user=await User.findOne({
+         resetToken:token,
+         resetTokenExpiry:{
+             $gt:Date.now()
+         }
+     })
+     if(!user){
+         return res.status(401).json({e:"Invalid or expired link"})
+     }
+     const hashedPassword=await bcrypt.hash(newPassword,10)
+     user.password=hashedPassword
+     user.resetToken=undefined;
+     user.resetTokenExpiry=undefined;
+     await user.save()
+     return res.status(200).json({m:"new password saved"});
+   } catch (error) {
+    return res.status(500).json({e:"Internal Error"})
    }
 }
 
@@ -230,4 +281,4 @@ const follow=async(req,res)=>{
     }
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow };
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,forgotPassword,resetPassword };

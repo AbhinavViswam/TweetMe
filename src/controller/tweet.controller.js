@@ -142,39 +142,47 @@ const addComment=async(req,res)=>{
     if(!newComment || !tweetId){
         return res.status(400).json({e:"tweetid or comment Field is empty"})
     }
-    await Comment.create({
-        userid:userId,
-        tweetid:tweetId,
-        comment:newComment
-    })
-    res.status(200).json({m:"comment added",o:newComment})
+   try {
+     await Comment.create({
+         userid:userId,
+         tweetid:tweetId,
+         comment:newComment
+     })
+     res.status(200).json({m:"comment added",o:newComment})
+   } catch (error) {
+    return res.status(500).json({e:"Internal Error"})
+   }
 }
 
 const getComments=async(req,res)=>{
     const {tweetId}=req.params
-    const comments=await Comment.aggregate([
-        {
-            $match:{tweetid:new mongoose.Types.ObjectId(tweetId)}
-        },
-        {
-           $lookup:{
-            from:"users",
-            localField:"userid",
-            foreignField:"_id",
-            as:"userDetails"
-           } 
-        },
-        {$unwind:"$userDetails"},
-        {
-            $project:{
-                _id:0,
-                username:"$userDetails.username",
-                comment:1,
-                createdAt:1
+    try {
+        const comments=await Comment.aggregate([
+            {
+                $match:{tweetid:new mongoose.Types.ObjectId(tweetId)}
+            },
+            {
+               $lookup:{
+                from:"users",
+                localField:"userid",
+                foreignField:"_id",
+                as:"userDetails"
+               } 
+            },
+            {$unwind:"$userDetails"},
+            {
+                $project:{
+                    _id:0,
+                    username:"$userDetails.username",
+                    comment:1,
+                    createdAt:1
+                }
             }
-        }
-    ]);
-    res.status(200).json({comments})
+        ]);
+        res.status(200).json({comments})
+    } catch (error) {
+        return res.status(500).json({e:"Internal Error"})
+    }
 }
 
 const deleteComment=async(req,res)=>{
@@ -183,15 +191,19 @@ const deleteComment=async(req,res)=>{
     if(!commentid){
         return res.status(400).json({e:"comment id not found"})
     }
-    const comment=await Comment.findById(commentid);
-    if(!comment){
-        return res.status(404).json({e:"That comment doesnot exists"})
+    try {
+        const comment=await Comment.findById(commentid);
+        if(!comment){
+            return res.status(404).json({e:"That comment doesnot exists"})
+        }
+        if(comment.userid.toString()!==userid.toString()){
+            return res.status(401).json({e:"You are not authorized to delete this comment"})
+        }
+        await Comment.deleteOne({_id:commentid});
+        res.status(200).json({m:"Comment Deleted"})
+    } catch (error) {
+        return res.status(500).json({e:"Internal Error"})
     }
-    if(comment.userid.toString()!==userid.toString()){
-        return res.status(401).json({e:"You are not authorized to delete this comment"})
-    }
-    await Comment.deleteOne({_id:commentid});
-    res.status(200).json({m:"Comment Deleted"})
 }
 
 module.exports={sendTweet,showTweet,like,unlike,addComment,getComments,deleteComment};
