@@ -32,6 +32,7 @@ const registerUser = async (req, res) => {
         if (!saveUser) {
             return res.status(500).json({ e: "Internal error" })
         }
+        return res.status(200).json({m:"User registered"})
 
     } catch (err) {
         res.status(500).json({ e: "Unknown error occured" })
@@ -117,9 +118,11 @@ const resetPassword=async(req,res)=>{
              $gt:Date.now()
          }
      })
+
      if(!user){
          return res.status(401).json({e:"Invalid or expired link"})
      }
+
      const hashedPassword=await bcrypt.hash(newPassword,10)
      user.password=hashedPassword
      user.resetToken=undefined;
@@ -281,4 +284,20 @@ const follow=async(req,res)=>{
     }
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,forgotPassword,resetPassword };
+const searchUser = async(req,res)=>{
+    const {username}=req.body
+    if(!username){
+        return res.status(400).json({e:"All fields are required"})
+    }
+    try {
+        const user=await User.findOne({username}).select("username email -_id")
+        if(!user){
+            return res.status(404).json({e:"user not found"})
+        }
+        return res.status(200).json({m:"User Found",o:user})
+    } catch (error) {
+        return res.status(500).json({e:"Internal error"})
+    }
+}
+
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,forgotPassword,resetPassword ,searchUser};
