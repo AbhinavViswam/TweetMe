@@ -1,4 +1,4 @@
-const {Group,Conversation,Message}=require("../models/messages.models.js")
+const {Conversation,Message}=require("../models/messages.models.js")
 const User=require("../models/user.models.js")
 const mongoose=require("mongoose")
 
@@ -82,18 +82,4 @@ const getMessage=async(req,res)=>{
     }
 }
 
-const createGroup=async(req,res)=>{
-    const userid=req.user._id
-    const {groupname,membersId}=req.body
-    if(!groupname || !membersId){
-        return res.status(400).json({e:"All fields are required"})
-    }
-    const group=new Group({
-        name:groupname,
-        members:[...membersId,userid]
-    })
-    await group.save()
-    return res.status(200).json({m:"Group Created"})
-}
-
-module.exports={createConversation,sendMessage,getMessage,createGroup}
+module.exports={createConversation,sendMessage,getMessage}

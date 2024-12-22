@@ -52,6 +52,11 @@ const userSchema = mongoose.Schema({
     },
     resetTokenExpiry:{
         type:Date
+    },
+    googleid:{
+        type:String,
+        unique:true,
+        sparse:true
     }
 },{
     timestamps:true

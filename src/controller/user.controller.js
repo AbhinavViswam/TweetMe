@@ -204,7 +204,7 @@ const updateUsername=async(req,res)=>{
 const showUser=async(req,res)=>{
     const {username}=req.params;
     try{
-    const userFound=await User.findOne({username})
+    const userFound=await User.findOne({username:username?.toLowerCase()})
     if(!userFound){
         return res.status(404).json({e:"User not Found"})
     }
@@ -284,6 +284,19 @@ const follow=async(req,res)=>{
     }
 }
 
+const unfollow=async(req,res)=>{
+    const followerId=req.user._id
+    const {followingId}= req.body
+    if(!followingId){
+        return res.status(400).json({e:"All fields are required"})
+    }
+    const unfollow=await Follow.findOneAndDelete({followingId,followerId})
+    if(!unfollow){
+        return res.status(400).json({m:"You are not following"})
+    }
+    res.status(200).json({m:"Successfully Unfollowed"}) 
+}
+
 const searchUser = async(req,res)=>{
     const {username}=req.body
     if(!username){
@@ -300,4 +313,11 @@ const searchUser = async(req,res)=>{
     }
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,forgotPassword,resetPassword ,searchUser};
+const googleCallback_Signin=async(req,res)=>{
+    const user=await User.findById(req.user._id)
+    const accesstoken = generateAccessToken(user);
+    res.cookie('accessToken',accesstoken,{httpOnly:true,sameSite:'Strict'})
+    res.status(200).json({m:"Successfully logged in"})
+}
+
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};

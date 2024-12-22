@@ -95,6 +95,25 @@ const showTweet=async(_,res)=>{
    }
 }
 
+const removeTweet=async(req,res)=>{
+    const userid=req.user._id
+    const {tweetid}=req.body
+    if(!tweetid){
+        return res.status(400).json({e:"All fields are required"})
+    }
+    const tweet=await Tweet.findById(tweetid)
+    if(!tweet){
+        return res.status(404).json({e:"Tweet not Found"})
+    }
+    if(tweet.userid.toString() !== userid.toString()){
+        return res.status(403).json({e:"You are not Authorized to delete this tweet"})
+    }
+    await Like.deleteMany({tweetid})
+    await Comment.deleteMany({tweetid})
+    await Tweet.findByIdAndDelete(tweetid)
+    res.status(200).json({m:"Tweet Successfully deleted"})
+}
+
 const like=async(req,res)=>{
     const {tweetId}=req.body;
     const userId=req.user?._id;
@@ -206,4 +225,4 @@ const deleteComment=async(req,res)=>{
     }
 }
 
-module.exports={sendTweet,showTweet,like,unlike,addComment,getComments,deleteComment};
+module.exports={sendTweet,showTweet,removeTweet,like,unlike,addComment,getComments,deleteComment};
