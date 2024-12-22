@@ -82,6 +82,8 @@ web_modules/
 .next
 out
 
+profile-pictures/
+
 # Nuxt.js build / generate output
 .nuxt
 dist

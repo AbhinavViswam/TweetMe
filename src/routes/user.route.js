@@ -1,7 +1,8 @@
 const express=require("express")
 const passport=require("passport")
-const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,unfollow,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
+const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,follow,unfollow,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
 const verifyJwt=require("../middleware/verifyToken.middleware.js")
+const upload=require("../middleware/multer.middleware.js")
 const router=express.Router()
 
 router.route("/register").post(registerUser)
@@ -15,7 +16,7 @@ router.route("/google/callback")
 router.get(
     '/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
-    googleCallback
+    googleCallback_Signin
   );
 
 router.route("/logout").post(verifyJwt,logoutUser)
@@ -25,6 +26,8 @@ router.route("/:username").get(showUser)
 router.route("/change-username").patch(verifyJwt,updateUsername)
 
 router.route("/updatedetails").patch(verifyJwt,updateUserDetails);
+
+router.route("/add-pic").patch(verifyJwt,upload.single("avatar"),add_Profile)
 
 router.route("/change-password").post(verifyJwt,changeCurrentPassword)
 

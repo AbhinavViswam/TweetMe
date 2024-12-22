@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const crypto=require("crypto")
 const generateAccessToken = require("../middleware/accesstoken.middleware.js")
 const Follow=require("../models/follow.models.js")
+const upload=require("../middleware/multer.middleware.js")
 
 const registerUser = async (req, res) => {
     const { fullname,username ,email, password } = req.body;
@@ -201,6 +202,32 @@ const updateUsername=async(req,res)=>{
    }
 }
 
+const fs=require("fs")
+
+const add_Profile=async(req,res)=>{
+    try {
+        const avatar=req.file?.path.replace(/\\/g, "/");
+        const userid=req.user?._id
+        const user=await User.findById(userid)
+        if(!user){
+            return res.status(404).json({e:"User not found"})
+        }
+        if(user.profilePicture){
+            fs.unlink(user.profilePicture,(err)=>{
+                if(err){
+                    console.log("profile picture not found");
+                }
+            })
+        }
+        await User.findByIdAndUpdate(userid,{
+            $set:{profilePicture:avatar}
+        })
+        return res.status(200).json({m:"Profile picture uploaded"})
+    } catch (error) {
+        return res.status(500).json({e:"Some internal error"})
+    }
+}
+
 const showUser=async(req,res)=>{
     const {username}=req.params;
     try{
@@ -320,4 +347,4 @@ const googleCallback_Signin=async(req,res)=>{
     res.status(200).json({m:"Successfully logged in"})
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,showUser,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};
