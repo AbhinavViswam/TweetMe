@@ -65,7 +65,7 @@ const loginUser = async (req, res) => {
             res.status(200).json({ m: `,Hello ADMIN, Successfully logged in as ${emailOrUsername}` });
         }
         else{
-            res.status(200).json({ m: `Successfully logged in as ${emailOrUsername}` });
+            res.status(200).json({ m: `Successfully logged in as ${emailOrUsername}`,token:accesstoken });
         }
     } catch (err) {
         res.status(500).json({ e: "Unknown error occured" })
