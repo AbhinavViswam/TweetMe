@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt')
 const crypto=require("crypto")
 const generateAccessToken = require("../middleware/accesstoken.middleware.js")
 const Follow=require("../models/follow.models.js")
-const upload=require("../middleware/multer.middleware.js")
 
 const registerUser = async (req, res) => {
     const { fullname,username ,email, password } = req.body;
