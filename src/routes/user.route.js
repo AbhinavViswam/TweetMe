@@ -1,6 +1,6 @@
 const express=require("express")
 const passport=require("passport")
-const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,follow,unfollow,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
+const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
 const verifyJwt=require("../middleware/verifyToken.middleware.js")
 const upload=require("../middleware/multer.middleware.js")
 const router=express.Router()
@@ -21,7 +21,9 @@ router.get(
 
 router.route("/logout").post(verifyJwt,logoutUser)
 
-router.route("/:username").get(showUser)
+router.route("/showuser/:username").get(showUser)
+
+router.route("/profile").get(verifyJwt,view_profile)
 
 router.route("/change-username").patch(verifyJwt,updateUsername)
 

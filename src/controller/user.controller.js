@@ -227,6 +227,11 @@ const add_Profile=async(req,res)=>{
     }
 }
 
+const view_profile=async(req,res)=>{
+    const user=req.user
+    res.status(200).json({m:"Fethed user data",o:user})
+}
+
 const showUser=async(req,res)=>{
     const {username}=req.params;
     try{
@@ -346,4 +351,4 @@ const googleCallback_Signin=async(req,res)=>{
     res.status(200).json({m:"Successfully logged in"})
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};

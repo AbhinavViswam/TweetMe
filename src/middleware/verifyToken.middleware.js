@@ -15,7 +15,7 @@ const verifyJwt=async(req,res,next)=>{
         req.user=user
         next();
     } catch (error) {
-        return res.status(500).json({e:"Error with token"})  
+        return res.status(500).json({e:"Error with token"})
     }
 }
 
