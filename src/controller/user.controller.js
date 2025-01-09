@@ -228,7 +228,60 @@ const add_Profile=async(req,res)=>{
 }
 
 const view_profile=async(req,res)=>{
-    const user=req.user
+    const userid=req.user
+    const user=await User.aggregate([
+        {
+            $match:{
+                _id:userid._id
+            }
+        },
+        {
+            $lookup:{
+                from:"tweets",
+                localField:"_id",
+                foreignField:"userid",
+                as:"tweetsdetails"
+            }
+        },
+        {
+            $lookup:{
+                from:"follows",
+                localField:"_id",
+                foreignField:"followingId",
+                as:"myFollowers"
+            }
+        },
+        {
+            $lookup:{
+                from:"follows",
+                localField:"_id",
+                foreignField:"followerId",
+                as:"meFollowings"
+            }
+        },
+        {
+            $addFields:{
+                follower_count:{
+                    $size:"$myFollowers"
+                },
+                following_count:{
+                    $size:"$meFollowings"
+                }
+            }
+        },
+        {
+            $project:{
+                _id:0,
+                username:"$username",
+                fullname:"$fullname",
+                profilePicture:"$profilePicture",
+                follower_count:1,
+                following_count:1,
+                bio:"$bio",
+                tweet:["$tweetsdetails.tweet","$tweetsdetails.createdAt"]
+            }
+        } 
+    ])
     res.status(200).json({m:"Fethed user data",o:user})
 }
 
@@ -304,6 +357,10 @@ const follow=async(req,res)=>{
         if(!(followerId || followingId)){
             return res.status(400).json({e:"FollowerId and FollowingId are required fields"})
         }
+        const followExists=await Follow.findOne({followerId,followingId})
+        if(followExists){
+            return res.status(400).json({e:"already following"})
+        }
         await Follow.create({
             followerId,
             followingId
@@ -315,11 +372,44 @@ const follow=async(req,res)=>{
     }
 }
 
+const followers=async(req,res)=>{
+    const followingId=req.user?._id
+    const myFollowers=await Follow.aggregate([
+        {
+            $match:{
+                followingId
+            }
+        },
+        {
+            $lookup:{
+                from:"users",
+                localField:"followerId",
+                foreignField:"_id",
+                as:"userDetails"
+            }
+        },
+        {
+            $unwind:"$userDetails"
+        },
+        {
+            $project:{
+                username:"$userDetails.username",
+                followerId:1
+            }
+        }
+    ])
+    return res.status(200).json({m:"Done",o:myFollowers})
+}
+
 const unfollow=async(req,res)=>{
     const followerId=req.user._id
     const {followingId}= req.body
     if(!followingId){
         return res.status(400).json({e:"All fields are required"})
+    }
+    const followingUser=await Follow.findOne({followerId,followingId})
+    if(!followingUser){
+        return res.status(400).json({e:"not a follower"})
     }
     const unfollow=await Follow.findOneAndDelete({followingId,followerId})
     if(!unfollow){
@@ -351,4 +441,4 @@ const googleCallback_Signin=async(req,res)=>{
     res.status(200).json({m:"Successfully logged in"})
 }
 
-module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};
+module.exports = { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,followers,forgotPassword,resetPassword ,searchUser,googleCallback_Signin};

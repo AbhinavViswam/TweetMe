@@ -1,6 +1,6 @@
 const express=require("express")
 const passport=require("passport")
-const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
+const { registerUser, loginUser,logoutUser,changeCurrentPassword,updateUserDetails,updateUsername,add_Profile,showUser,view_profile,follow,unfollow,followers,forgotPassword,resetPassword,searchUser,googleCallback_Signin} = require("../controller/user.controller")
 const verifyJwt=require("../middleware/verifyToken.middleware.js")
 const upload=require("../middleware/multer.middleware.js")
 const router=express.Router()
@@ -36,6 +36,8 @@ router.route("/change-password").post(verifyJwt,changeCurrentPassword)
 router.route("/follow").post(verifyJwt,follow)
 
 router.route("/unfollow").delete(verifyJwt,unfollow)
+
+router.route("/myfollowers").get(verifyJwt,followers)
 
 router.route("/forgot-password").post(forgotPassword)
 

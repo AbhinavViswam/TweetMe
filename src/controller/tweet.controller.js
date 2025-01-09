@@ -79,6 +79,7 @@ const showTweet=async(_,res)=>{
          {
             $project:{
                 username:"$userDetails.username",
+                userid:"$userDetails._id",
                 tweet:1,
                 updatedAt:1,
                 likes:"$likeCount"
@@ -179,6 +180,9 @@ const getComments=async(req,res)=>{
         const comments=await Comment.aggregate([
             {
                 $match:{tweetid:new mongoose.Types.ObjectId(tweetId)}
+            },
+            {
+                $sort:{createdAt:-1}
             },
             {
                $lookup:{
