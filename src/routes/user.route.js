@@ -47,9 +47,11 @@ router.route("/search").post(verifyJwt,searchUser)
 
 //message
 
-const {createConversation,sendMessage,getMessage}=require("../controller/message.controller.js")
+const {createConversation,sendMessage,getMessage,allConversations}=require("../controller/message.controller.js")
 
 router.route("/m").post(verifyJwt,createConversation)
+
+router.route("/m/allconversations").get(verifyJwt,allConversations)
 
 router.route("/m/:conversationid").get(verifyJwt,getMessage)
 

@@ -26,6 +26,55 @@ const createConversation=async(req,res)=>{
     }
 }
 
+const allConversations=async(req,res)=>{
+    const userid=req.user._id
+    try {
+        const conversations=await Conversation.aggregate([
+            {
+                $match: {
+                    participants: userid
+                }
+            },
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"participants",
+                    foreignField:"_id",
+                    as:"userDetails"
+                }
+            },
+            {
+                $addFields:{
+                    otherParticipants:{
+                        $filter:{
+                            input:"$userDetails",
+                            as:"user",
+                            cond: { $ne: ["$$user._id", userid] }
+                        }
+                    }
+                }
+            },
+            {
+                
+                $unwind: "$otherParticipants"
+            },
+            {
+              
+                $project: {
+                    "username": "$otherParticipants.username",
+                    "fullname": "$otherParticipants.fullname",
+                    "profilePicture": "$otherParticipants.profilePicture",
+                    // participants: 1
+                    _id:1
+                }
+            }
+        ])
+        return res.status(200).json({m:"fetched",o:conversations})
+    } catch (error) {
+        return res.status(500).json({e:"internal error occurred"})
+    }
+}
+
 const sendMessage=async(req,res)=>{
     const Sender=req.user._id
     const {conversationId}=req.params
@@ -82,4 +131,4 @@ const getMessage=async(req,res)=>{
     }
 }
 
-module.exports={createConversation,sendMessage,getMessage}
+module.exports={createConversation,sendMessage,getMessage, allConversations}
